@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Binary assets (not needed for cloud deployment)
+src/main/resources/static/assets/*.png
