@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakNow AI - Job Interview Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-red-50 to-red-100 min-h-screen">
+
+    <div class="container mx-auto px-4 py-8 max-w-3xl">
+        
+        <div class="flex justify-between items-center mb-6">
+            <a href="index.html" class="text-red-600 hover:text-red-700">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+            <div class="bg-red-600 text-white px-4 py-2 rounded-full shadow">
+                <i class="fas fa-briefcase mr-2"></i> Job Interview Mode
+            </div>
+        </div>
+
+        <!-- Timer -->
+        <div id="timerContainer" class="text-center mb-4">
+            <div class="inline-block bg-white rounded-full px-6 py-2 shadow">
+                <i class="fas fa-hourglass-half text-red-500 mr-2"></i>
+                <span id="timer" class="text-2xl font-bold">00:00</span>
+            </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-tie text-red-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">HR Interviewer</p>
+                    <p id="question" class="text-xl font-semibold text-gray-800">Loading...</p>
+                    <p id="difficulty" class="text-xs text-gray-400 mt-2"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Answer Input -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <textarea id="answer" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Type your answer here..."></textarea>
+            <button id="submitBtn" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition">
+                <i class="fas fa-paper-plane mr-2"></i> Submit Answer
+            </button>
+        </div>
+
+        <!-- Result Card -->
+        <div id="resultCard" class="hidden bg-gray-50 rounded-2xl shadow-xl p-6 mb-6">
+            <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-chart-line mr-2 text-red-600"></i> Brutal Score</h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="font-medium">📝 Grammar:</span>
+                    <span id="grammarScore" class="text-xl font-bold">0/10</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="grammarBar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-medium">🔍 Clarity:</span>
+                    <span id="clarityScore" class="text-xl font-bold">0/10</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="clarityBar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-medium">💪 Confidence:</span>
+                    <span id="confidenceScore" class="text-xl font-bold">0/10</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="confidenceBar" class="bg-yellow-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="comment" class="mt-4 p-3 bg-red-50 rounded-lg text-red-700"></div>
+            <div id="feedback" class="mt-2 p-3 bg-blue-50 rounded-lg text-blue-700"></div>
+            <div id="followUp" class="mt-3 p-3 bg-purple-50 rounded-lg">
+                <p class="font-semibold text-purple-800">🎯 Follow-up Attack:</p>
+                <p id="followUpText" class="text-purple-700"></p>
+            </div>
+            <button id="nextBtn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg transition hidden">
+                Next Question →
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = '';
+        let currentDifficulty = '';
+        let timeLimit = 0;
+        let timerInterval;
+        let timeLeft;
+
+        function startTimer() {
+            timeLeft = timeLimit;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer').innerHTML = '00:00';
+                    alert('Time is up! Submitting your answer...');
+                    submitAnswer();
+                } else {
+                    timeLeft--;
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').innerHTML = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Warning when time is low
+            if (timeLeft <= 10) {
+                document.getElementById('timer').classList.add('text-red-600', 'font-bold');
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        async function loadQuestion() {
+            try {
+                const response = await fetch('http://localhost:8080/api/interview/question?difficulty=random');
+                const data = await response.json();
+                
+                currentQuestion = data.question;
+                currentDifficulty = data.difficulty;
+                timeLimit = data.timeLimit;
+                
+                document.getElementById('question').innerText = currentQuestion;
+                document.getElementById('difficulty').innerHTML = `<i class="fas fa-signal"></i> Difficulty: ${currentDifficulty}`;
+                document.getElementById('resultCard').classList.add('hidden');
+                document.getElementById('answer').value = '';
+                document.getElementById('answer').disabled = false;
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('nextBtn').classList.add('hidden');
+                
+                stopTimer();
+                startTimer();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function submitAnswer() {
+            stopTimer();
+            
+            const answer = document.getElementById('answer').value;
+            if (!answer.trim()) {
+                alert('Please write your answer first!');
+                startTimer();
+                return;
+            }
+            
+            document.getElementById('answer').disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+            
+            try {
+                const userId = localStorage.getItem('userId') || '1';
+                const response = await fetch('http://localhost:8080/api/interview/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userId,
+                        question: currentQuestion,
+                        answer: answer,
+                        difficulty: currentDifficulty
+                    })
+                });
+                
+                const result = await response.json();
+                const score = result.score;
+                
+                // Update scores
+                document.getElementById('grammarScore').innerText = score.grammar + '/10';
+                document.getElementById('clarityScore').innerText = score.clarity + '/10';
+                document.getElementById('confidenceScore').innerText = score.confidence + '/10';
+                document.getElementById('grammarBar').style.width = (score.grammar * 10) + '%';
+                document.getElementById('clarityBar').style.width = (score.clarity * 10) + '%';
+                document.getElementById('confidenceBar').style.width = (score.confidence * 10) + '%';
+                document.getElementById('comment').innerHTML = '<i class="fas fa-comment-dots mr-2"></i> ' + score.comment;
+                document.getElementById('feedback').innerHTML = '<i class="fas fa-lightbulb mr-2"></i> ' + score.feedback;
+                document.getElementById('followUpText').innerHTML = result.followUp;
+                
+                document.getElementById('resultCard').classList.remove('hidden');
+                document.getElementById('nextBtn').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error evaluating answer.');
+            }
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', submitAnswer);
+        document.getElementById('nextBtn').addEventListener('click', loadQuestion);
+        
+        // Load first question
+        loadQuestion();
+    </script>
+</body>
+</html>

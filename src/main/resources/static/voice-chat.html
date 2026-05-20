@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakNow AI - Voice Conversation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-bounce {
+            animation: bounce 0.6s infinite;
+        }
+        .speaking {
+            animation: pulse 0.8s infinite;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        .listening {
+            animation: pulse 0.5s infinite;
+            background: #ef4444 !important;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        .mic-ready {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5);
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen">
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <a href="index.html" class="text-blue-600 hover:text-blue-700 text-lg">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+            <div class="bg-white px-4 py-2 rounded-full shadow">
+                <span class="font-semibold text-purple-600"><i class="fas fa-microphone-alt mr-2"></i>Voice Conversation</span>
+            </div>
+        </div>
+
+        <!-- Main Voice Card -->
+        <div class="bg-white rounded-3xl shadow-2xl p-8 mb-6 text-center">
+            <div id="aiAvatar" class="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-5xl mx-auto mb-6 transition-all duration-300">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div id="aiStatus" class="text-gray-500 mb-4 font-medium">Ready to talk...</div>
+            <div id="currentMessage" class="text-xl text-gray-800 font-medium mb-6 px-6 py-4 bg-blue-50 rounded-2xl inline-block min-h-[80px] flex items-center justify-center">
+                Click Start to begin conversation
+            </div>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button id="startVoiceBtn" class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-full text-xl font-semibold transition shadow-lg flex items-center justify-center">
+                    <i class="fas fa-play mr-2"></i> Start Conversation
+                </button>
+                <button id="stopVoiceBtn" class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-full text-xl font-semibold transition shadow-lg hidden flex items-center justify-center">
+                    <i class="fas fa-stop mr-2"></i> End Session
+                </button>
+            </div>
+            <div id="micInstruction" class="mt-4 text-sm text-gray-500 hidden">
+                <i class="fas fa-info-circle mr-1"></i> Click the <strong>mic button</strong> when it's your turn to speak
+            </div>
+        </div>
+
+        <!-- Conversation Log -->
+        <div class="bg-white rounded-2xl shadow-xl p-6">
+            <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-history text-blue-600 mr-2"></i> Conversation Log</h3>
+            <div id="conversationLog" class="h-64 overflow-y-auto space-y-3 mb-4 pr-2">
+                <div class="text-center text-gray-400 py-8">
+                    <i class="fas fa-comments text-3xl mb-2"></i>
+                    <p>Start a voice conversation to see the transcript</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Mic Button -->
+    <button id="micFloating" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white w-16 h-16 rounded-full shadow-2xl text-2xl transition transform hover:scale-105 z-50 hidden mic-ready" title="Click to speak">
+        <i class="fas fa-microphone"></i>
+    </button>
+
+    <script>
+        let mediaRecognition = null;
+        let isListening = false;
+        let conversationActive = false;
+        let isAIPreparing = false;
+        const synth = window.speechSynthesis;
+        let currentUtterance = null;
+
+        // User data
+        const userId = localStorage.getItem('userId') || '1';
+        let sessionId = 'voice-session-' + Date.now();
+
+        // DOM elements
+        const aiAvatar = document.getElementById('aiAvatar');
+        const aiStatus = document.getElementById('aiStatus');
+        const currentMessageDiv = document.getElementById('currentMessage');
+        const startBtn = document.getElementById('startVoiceBtn');
+        const stopBtn = document.getElementById('stopVoiceBtn');
+        const conversationLog = document.getElementById('conversationLog');
+        const micFloating = document.getElementById('micFloating');
+        const micInstruction = document.getElementById('micInstruction');
+
+        // Initialize speech recognition
+     function initSpeechRecognition() {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        mediaRecognition = new SpeechRecognition();
+        mediaRecognition.lang = 'en-US';
+        mediaRecognition.continuous = true;      // ← UBAH KE true (biar terus mendengarkan)
+        mediaRecognition.interimResults = true;   // ← UBAH KE true (biar dapet partial results)
+        mediaRecognition.maxAlternatives = 1;
+
+        let speechBuffer = '';
+        let silenceTimer = null;
+        let lastSpeechTime = Date.now();
+
+        mediaRecognition.onstart = function() {
+            isListening = true;
+            speechBuffer = '';
+            lastSpeechTime = Date.now();
+            updateStatus('🎤 Listening to you... Speak now!', 'listening');
+            micFloating.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+            
+            // Reset silence timer setiap kali start
+            if (silenceTimer) clearTimeout(silenceTimer);
+        };
+
+        mediaRecognition.onresult = function(event) {
+            // Reset timer karena user sedang bicara
+            lastSpeechTime = Date.now();
+            
+            let interim = '';
+            let final = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    final += transcript + ' ';
+                } else {
+                    interim += transcript + ' ';
+                }
+            }
+            
+            if (interim) {
+                currentMessageDiv.innerText = '🎤 ' + interim.trim() + ' ✍️';
+            }
+            
+            if (final) {
+                speechBuffer += final;
+                currentMessageDiv.innerText = '📝 ' + speechBuffer.trim();
+            }
+            
+            // Clear existing timer
+            if (silenceTimer) clearTimeout(silenceTimer);
+            
+            // Set timer 5 detik setelah user berhenti bicara
+            silenceTimer = setTimeout(() => {
+                if (speechBuffer.trim().length > 0 && conversationActive && !isAIPreparing) {
+                    const finalText = speechBuffer.trim();
+                    speechBuffer = '';
+                    addToLog('user', finalText);
+                    currentMessageDiv.innerText = 'You: ' + finalText;
+                    stopListening();
+                    sendToAI(finalText);
+                }
+            }, 5000); // ← 5 DETIK
+        };
+
+        mediaRecognition.onend = function() {
+            if (silenceTimer) clearTimeout(silenceTimer);
+            isListening = false;
+            micFloating.innerHTML = '<i class="fas fa-microphone"></i>';
+            
+            if (conversationActive && !isAIPreparing && speechBuffer.trim().length > 0) {
+                const finalText = speechBuffer.trim();
+                speechBuffer = '';
+                addToLog('user', finalText);
+                currentMessageDiv.innerText = 'You: ' + finalText;
+                sendToAI(finalText);
+            } else if (conversationActive && !isAIPreparing) {
+                updateStatus('👆 Your turn! Click mic to speak', 'ready');
+            }
+        };
+
+        mediaRecognition.onerror = function(event) {
+            console.error('Recognition error:', event.error);
+            if (silenceTimer) clearTimeout(silenceTimer);
+            if (event.error !== 'aborted') {
+                updateStatus('❌ Listening error. Try again.', 'error');
+                setTimeout(() => {
+                    if (conversationActive) updateStatus('👆 Your turn! Click mic to speak', 'ready');
+                }, 2000);
+            }
+            isListening = false;
+            micFloating.innerHTML = '<i class="fas fa-microphone"></i>';
+        };
+
+        return true;
+    }
+    return false;
+}
+
+        function updateStatus(text, state = 'idle') {
+            aiStatus.innerText = text;
+            aiAvatar.classList.remove('speaking', 'listening', 'mic-ready');
+            
+            if (state === 'speaking') {
+                aiAvatar.classList.add('speaking');
+                aiStatus.classList.add('text-blue-600');
+            } else if (state === 'listening') {
+                aiAvatar.classList.add('listening');
+                aiStatus.classList.add('text-red-500');
+            } else if (state === 'ready') {
+                aiAvatar.classList.add('mic-ready');
+                aiStatus.classList.add('text-green-600');
+            } else if (state === 'error') {
+                aiStatus.classList.add('text-red-500');
+            } else {
+                aiStatus.classList.remove('text-red-500', 'text-blue-600', 'text-green-600');
+            }
+        }
+
+        function stopListening() {
+            if (mediaRecognition && isListening) {
+                try { mediaRecognition.stop(); } catch(e) {}
+            }
+            isListening = false;
+            micFloating.innerHTML = '<i class="fas fa-microphone"></i>';
+        }
+
+        async function sendToAI(userMessage) {
+            if (!conversationActive) return;
+            
+            isAIPreparing = true;
+            updateStatus('🤖 AI is thinking...', 'thinking');
+            currentMessageDiv.innerText = '🤖 Thinking...';
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+                const response = await fetch('http://localhost:8080/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        userId: parseInt(userId),
+                        sessionId: sessionId,
+                        message: userMessage,
+                        mode: 'practice'
+                    })
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const result = await response.json();
+                const aiMessage = result.message || "Sorry, I didn't understand that.";
+                
+                addToLog('ai', aiMessage);
+                currentMessageDiv.innerText = '🤖 ' + aiMessage;
+                
+                // Speak AI response
+                speakResponse(aiMessage);
+                
+            } catch (error) {
+                console.error('AI Error:', error);
+                const errorMsg = error.name === 'AbortError' ? 
+                    'AI is taking too long. Try again.' : 
+                    'Connection error. Please try again.';
+                
+                currentMessageDiv.innerText = errorMsg;
+                updateStatus('❌ ' + errorMsg, 'error');
+                
+                setTimeout(() => {
+                    if (conversationActive) {
+                        updateStatus('👆 Your turn! Click mic to speak', 'ready');
+                    }
+                }, 3000);
+            } finally {
+                isAIPreparing = false;
+            }
+        }
+
+        function speakResponse(text) {
+            // Cancel any ongoing speech
+            if (currentUtterance) {
+                synth.cancel();
+            }
+            
+            updateStatus('🔊 AI is speaking...', 'speaking');
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            utterance.onstart = () => {
+                updateStatus('🔊 AI is speaking...', 'speaking');
+            };
+            
+            utterance.onend = () => {
+                updateStatus('👆 Your turn! Click mic to speak', 'ready');
+                currentMessageDiv.innerText = '🎤 Ready for your response...';
+                micInstruction.classList.remove('hidden');
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('Speech synthesis error:', event);
+                updateStatus('👆 Your turn! Click mic to speak', 'ready');
+            };
+            
+            currentUtterance = utterance;
+            synth.speak(utterance);
+        }
+
+        function startConversation() {
+            if (!mediaRecognition && !initSpeechRecognition()) {
+                alert('Speech recognition not supported. Please use Chrome or Edge.');
+                return;
+            }
+            
+            conversationActive = true;
+            sessionId = 'voice-session-' + Date.now();
+            
+            // UI updates
+            startBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+            micFloating.classList.remove('hidden');
+            micInstruction.classList.remove('hidden');
+            conversationLog.innerHTML = '';
+            
+            // Start with AI greeting
+            const openingMessage = "Hello! I'm your AI voice partner. I'm excited to talk with you. What would you like to chat about today?";
+            addToLog('system', '🎤 Voice conversation started!');
+            addToLog('ai', openingMessage);
+            currentMessageDiv.innerText = '🤖 ' + openingMessage;
+            speakResponse(openingMessage);
+        }
+
+        function stopConversation() {
+            conversationActive = false;
+            isAIPreparing = false;
+            
+            stopListening();
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            
+            // Reset UI
+            aiAvatar.classList.remove('speaking', 'listening', 'mic-ready');
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            micFloating.classList.add('hidden');
+            micInstruction.classList.add('hidden');
+            
+            updateStatus('Conversation ended. Click Start to begin again.', 'idle');
+            currentMessageDiv.innerText = 'Session ended';
+            
+            addToLog('system', '🔴 Conversation ended');
+        }
+
+        function toggleListening() {
+            if (!conversationActive) {
+                alert('Please start the conversation first!');
+                return;
+            }
+            
+            if (isListening || isAIPreparing) {
+                stopListening();
+            } else {
+                if (mediaRecognition) {
+                    try {
+                        mediaRecognition.start();
+                    } catch (e) {
+                        console.log('Speech recognition already starting or active');
+                    }
+                }
+            }
+        }
+
+        function addToLog(role, text) {
+            const messageDiv = document.createElement('div');
+            if (role === 'user') {
+                messageDiv.className = 'flex justify-end';
+                messageDiv.innerHTML = `
+                    <div class="bg-blue-500 text-white rounded-2xl rounded-tr-none px-4 py-2 max-w-[70%] shadow">
+                        <p class="text-sm">${escapeHtml(text)}</p>
+                    </div>
+                `;
+            } else if (role === 'ai') {
+                messageDiv.className = 'flex justify-start';
+                messageDiv.innerHTML = `
+                    <div class="bg-purple-100 text-purple-800 rounded-2xl rounded-tl-none px-4 py-2 max-w-[70%] shadow">
+                        <p class="text-sm">${escapeHtml(text)}</p>
+                    </div>
+                `;
+            } else {
+                messageDiv.className = 'text-center';
+                messageDiv.innerHTML = `<p class="text-xs text-gray-400 italic font-medium">${text}</p>`;
+            }
+            
+            // Remove placeholder if exists
+            const placeholder = conversationLog.querySelector('.text-center');
+            if (placeholder) placeholder.remove();
+            
+            conversationLog.appendChild(messageDiv);
+            conversationLog.scrollTop = conversationLog.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        initSpeechRecognition();
+
+        // Event listeners
+        startBtn.addEventListener('click', startConversation);
+        stopBtn.addEventListener('click', stopConversation);
+        micFloating.addEventListener('click', toggleListening);
+
+        // Handle visibility change (important for mobile)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isListening) {
+                stopListening();
+            }
+        });
+
+        // Prevent double-tap zoom on mobile
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
