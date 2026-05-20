@@ -1,7 +1,7 @@
 ---
 title: SpeakNow AI
 emoji: 🗣️
-colorFrom: emerald
+colorFrom: green
 colorTo: indigo
 sdk: docker
 app_port: 8080
