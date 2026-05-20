@@ -128,7 +128,7 @@
 
         async function loadQuestion() {
             try {
-                const response = await fetch('http://localhost:8080/api/interview/question?difficulty=random');
+                const response = await fetch('/api/interview/question?difficulty=random');
                 const data = await response.json();
                 
                 currentQuestion = data.question;
@@ -166,7 +166,7 @@
             
             try {
                 const userId = localStorage.getItem('userId') || '1';
-                const response = await fetch('http://localhost:8080/api/interview/evaluate', {
+                const response = await fetch('/api/interview/evaluate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

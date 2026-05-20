@@ -385,7 +385,7 @@
             stopTimer();
             
             try {
-                const response = await fetch('http://localhost:8080/api/chat', {
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -425,7 +425,7 @@
         
         async function checkGrammarAndShowScore(text) {
             try {
-                const response = await fetch('http://localhost:8080/api/grammar-check', {
+                const response = await fetch('/api/grammar-check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -548,7 +548,7 @@
             popup.classList.remove('hidden');
             
             try {
-                const response = await fetch('http://localhost:8080/api/alternative', {
+                const response = await fetch('/api/alternative', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -598,7 +598,7 @@
             resultText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menerjemahkan...';
             
             try {
-                const response = await fetch('http://localhost:8080/api/translate', {
+                const response = await fetch('/api/translate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -721,7 +721,7 @@
 
             try {
                 const finalScore = sessionStats.checks ? (sessionStats.grammarSum + sessionStats.claritySum + sessionStats.confidenceSum) / (3 * sessionStats.checks) : 0;
-                const response = await fetch('http://localhost:8080/api/session/save', {
+                const response = await fetch('/api/session/save', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

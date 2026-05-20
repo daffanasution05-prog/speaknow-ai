@@ -160,7 +160,7 @@
         // Load data
         async function loadDictionary() {
             try {
-                const response = await fetch(`http://localhost:8080/api/dictionary/${userId}`);
+                const response = await fetch(`/api/dictionary/${userId}`);
                 if (!response.ok) throw new Error('Failed to load');
                 const data = await response.json();
                 dictionaryData = data.words || [];
@@ -367,7 +367,7 @@
 
         async function markAsMastered(word) {
             try {
-                const response = await fetch(`http://localhost:8080/api/dictionary/${userId}/master`, {
+                const response = await fetch(`/api/dictionary/${userId}/master`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ word: word })
@@ -430,7 +430,7 @@
             btn.disabled = true;
             
             try {
-                const response = await fetch(`http://localhost:8080/api/dictionary/${userId}/generate-targets`, {
+                const response = await fetch(`/api/dictionary/${userId}/generate-targets`, {
                     method: 'POST'
                 });
                 if (response.ok) {

@@ -449,7 +449,7 @@ html_content = '''<!DOCTYPE html>
     <script>
         // ==================== CONFIGURATION ====================
         const CONFIG = {
-            API_BASE_URL: 'http://localhost:8080/api',
+            API_BASE_URL: '/api',
             USER_ID: parseInt(localStorage.getItem('userId')) || 1,
             SESSION_ID: localStorage.getItem('chatSessionId') || `free-chat-${Date.now()}`,
             MAX_RETRIES: 2,

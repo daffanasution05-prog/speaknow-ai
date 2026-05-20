@@ -348,7 +348,7 @@
 <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
 <script>
-const CONFIG = { API_BASE_URL:'http://localhost:8080/api', USER_ID:parseInt(localStorage.getItem('userId'))||1 };
+const CONFIG = { API_BASE_URL:'/api', USER_ID:parseInt(localStorage.getItem('userId'))||1 };
 
 function initTheme(){
     const saved=localStorage.getItem('theme');
