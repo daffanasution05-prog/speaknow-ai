@@ -36,83 +36,22 @@
             .group-hover\:opacity-100 { opacity: 0; }
             .bubble-active .group-hover\:opacity-100 { opacity: 1; }
         }
-        /* Onboarding Tutorial Overlay */
-        #onboardingOverlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: rgba(10, 10, 30, 0.82);
-            backdrop-filter: blur(6px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
+        /* ===== Onboarding Tutorial CSS ===== */
+        .ob-spotlight {
+            position: relative !important;
+            z-index: 9991 !important;
+            pointer-events: auto !important;
+            background: white !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.3s ease;
         }
-        #onboardingBox {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 1px solid rgba(99, 102, 241, 0.35);
-            border-radius: 2rem;
-            padding: 2rem;
-            max-width: 380px;
-            width: 100%;
-            box-shadow: 0 40px 100px rgba(99, 102, 241, 0.3);
-            text-align: center;
-            color: #f1f5f9;
-            position: relative;
+        .dark .ob-spotlight {
+            background: #1e293b !important;
         }
-        .ob-step { display: none; }
-        .ob-step.active { display: block; }
-        .ob-icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            margin: 0 auto 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-        }
-        .ob-step-dots {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 1.25rem;
-        }
-        .ob-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(148, 163, 184, 0.35);
-            transition: all 0.3s;
-        }
-        .ob-dot.active {
-            background: #818cf8;
-            width: 24px;
-            border-radius: 4px;
-        }
-        .ob-btn {
-            width: 100%;
-            margin-top: 1.25rem;
-            padding: 0.875rem;
-            border-radius: 1rem;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-        }
-        .ob-btn-primary {
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
-            color: white;
-            box-shadow: 0 8px 20px rgba(99,102,241,0.4);
-        }
-        .ob-btn-primary:active { transform: scale(0.97); }
-        .ob-btn-skip {
-            background: transparent;
-            color: #64748b;
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-            padding: 0.5rem;
+        .ob-elevated-actions {
+            z-index: 9995 !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
         }
         .timer-warning {
             color: #dc2626;
@@ -127,7 +66,7 @@
             position: fixed;
             bottom: 16px;
             right: 16px;
-            z-index: 50;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
@@ -166,9 +105,14 @@
         
         <!-- Header -->
         <div class="relative z-10 flex justify-between items-center mb-8">
-            <a href="index.html" class="flex items-center gap-3 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 font-semibold transition bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-2xl backdrop-blur-md shadow-sm border border-white/50 dark:border-slate-700/50">
-                <i class="fas fa-arrow-left"></i> <span class="hidden sm:inline">Dashboard</span>
-            </a>
+            <div class="flex gap-2">
+                <a href="index.html" class="flex items-center gap-3 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 font-semibold transition bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-2xl backdrop-blur-md shadow-sm border border-white/50 dark:border-slate-700/50">
+                    <i class="fas fa-arrow-left"></i> <span class="hidden sm:inline">Dashboard</span>
+                </a>
+                <button onclick="localStorage.removeItem('speaknow_onboarding_done'); startTutorial();" class="flex items-center gap-2 text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold transition bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-2xl backdrop-blur-md shadow-sm border border-white/50 dark:border-slate-700/50" title="Ulangi Tutorial">
+                    <i class="fas fa-question-circle"></i> <span class="hidden sm:inline">Tutorial</span>
+                </button>
+            </div>
             <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-sm border border-white/50 dark:border-slate-700/50 flex items-center gap-3">
                 <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
                 <span id="modeLabel" class="font-bold tracking-wide">Free Chat</span>
@@ -186,14 +130,14 @@
         </div>
         
         <!-- Chat Container -->
-        <div class="relative z-10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl shadow-xl shadow-indigo-900/5 border border-white/50 dark:border-slate-700/50 h-[500px] mb-6 flex flex-col overflow-hidden">
+        <div id="chatBoxWrapper" class="relative z-10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl shadow-xl shadow-indigo-900/5 border border-white/50 dark:border-slate-700/50 h-[500px] mb-6 flex flex-col overflow-hidden">
             <div id="chatContainer" class="flex-1 overflow-y-auto p-6 relative z-10 custom-scrollbar">
                 <div id="chatMessages" class="space-y-6"></div>
             </div>
         </div>
         
         <!-- Score Card Modal -->
-        <div id="scoreCard" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+        <div id="scoreCard" class="hidden fixed inset-0 z-[9995] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
             <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700 w-full max-w-md overflow-hidden transform transition-all relative">
                 <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-5 text-white flex justify-between items-center">
                     <h3 class="font-bold text-lg flex items-center gap-2"><i class="fas fa-magic"></i> AI Grammar Analysis</h3>
@@ -242,7 +186,7 @@
         </div>
 
         <!-- Session Summary Modal -->
-        <div id="sessionSummary" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+        <div id="sessionSummary" class="hidden fixed inset-0 z-[9995] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
             <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700 w-full max-w-lg overflow-hidden transform transition-all">
                 <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-5 text-white flex justify-between items-center">
                     <div>
@@ -299,8 +243,8 @@
                     <p id="quickGrammarText" class="text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed"></p>
                 </div>
                 <div class="flex flex-col gap-2 flex-shrink-0">
-                    <button id="showDetailedScoreBtn" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition shadow-md flex items-center justify-center group" title="View Score Details">
-                        <i class="fas fa-info-circle group-hover:scale-110 transition-transform"></i>
+                    <button id="showDetailedScoreBtn" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition shadow-md flex items-center justify-center group animate-pulse" title="View Score Details">
+                        <i class="fas fa-exclamation-circle group-hover:scale-110 transition-transform text-lg text-amber-500"></i>
                     </button>
                     <button onclick="document.getElementById('quickGrammarPanel').classList.add('hidden')" class="w-8 h-8 rounded-full text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center justify-center">
                         <i class="fas fa-times"></i>
@@ -331,7 +275,7 @@
                     </button>
                 </div>
             </div>
-            <div class="mt-4 text-center text-[11px] text-slate-400 dark:text-slate-500 font-medium tracking-wide uppercase">
+            <div id="tutorialHintContainer" class="hidden mt-4 text-center text-[11px] text-slate-400 dark:text-slate-500 font-medium tracking-wide uppercase">
                 <i class="fas fa-lightbulb text-amber-400 mr-1"></i> <span id="inputHintText">Tap bubble & click 🔄 for styles • 🌐 for translate</span>
             </div>
         </div>
@@ -381,67 +325,54 @@
         </div>
     </div>
 
-    <!-- Onboarding Tutorial Overlay -->
-    <div id="onboardingOverlay" style="display:none;">
-        <div id="onboardingBox">
-            <!-- Step 1: Welcome -->
-            <div class="ob-step active" id="ob-step-1">
-                <div class="ob-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                    👋
-                </div>
-                <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:0.5rem;">Selamat Datang di SpeakNow! 🎉</h2>
-                <p style="color:#94a3b8; font-size:0.92rem; line-height:1.65;">Ayo kenalan dulu dengan fitur-fitur keren yang bisa bantu kamu belajar English lebih cepat!</p>
-                <button class="ob-btn ob-btn-primary" onclick="obNextStep()">Mulai Tutorial →</button>
-                <button class="ob-btn ob-btn-skip" onclick="obSkip()">Lewati</button>
+    <!-- Welcome Onboarding Modal -->
+    <div id="obWelcomeModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+        <div class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-3xl shadow-2xl border border-white/20 dark:border-slate-800 w-full max-w-md overflow-hidden transform transition-all p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl">🚀</span>
+                <h3 class="font-extrabold text-xl bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">Selamat Datang di SpeakNow AI!</h3>
             </div>
-            <!-- Step 2: Send Message -->
-            <div class="ob-step" id="ob-step-2">
-                <div class="ob-icon" style="background: linear-gradient(135deg, #0ea5e9, #6366f1);">
-                    ✉️
-                </div>
-                <h2 style="font-size:1.25rem; font-weight:800; margin-bottom:0.5rem;">Ketik & Kirim Pesan</h2>
-                <p style="color:#94a3b8; font-size:0.92rem; line-height:1.65;">Ketik pesanmu di kotak di bawah, lalu tekan <strong style="color:#818cf8;">Send</strong>. Kamu juga bisa pakai tombol mic 🎤 untuk bicara langsung.</p>
-                <div style="background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.25); border-radius:1rem; padding:0.875rem 1rem; margin-top:1rem; font-size:0.85rem; color:#c7d2fe;">
-                    💡 Tekan tombol <strong>Fix ✨</strong> untuk cek grammar pesanmu!
-                </div>
-                <button class="ob-btn ob-btn-primary" onclick="obNextStep()">Mengerti, lanjut →</button>
-            </div>
-            <!-- Step 3: Tap Bubble = Translate -->
-            <div class="ob-step" id="ob-step-3">
-                <div class="ob-icon" style="background: linear-gradient(135deg, #10b981, #0ea5e9);">
-                    🌐
-                </div>
-                <h2 style="font-size:1.25rem; font-weight:800; margin-bottom:0.5rem;">Tap Bubble → Terjemahkan</h2>
-                <p style="color:#94a3b8; font-size:0.92rem; line-height:1.65;">Tap/klik bubble chat AI, lalu tekan tombol <strong style="color:#34d399;">🌐</strong> yang muncul untuk menerjemahkan pesan ke Bahasa Indonesia.</p>
-                <div style="display:flex; gap:0.75rem; margin-top:1rem; align-items:center; justify-content:center;">
-                    <div style="background:#1e293b; border:1px solid #334155; border-radius:1rem; padding:0.6rem 1rem; font-size:0.82rem; color:#e2e8f0; position:relative;">
-                        Hello! How are you?
-                        <span style="position:absolute; top:-12px; right:-12px; width:28px; height:28px; background:linear-gradient(135deg,#10b981,#0ea5e9); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem; box-shadow:0 4px 12px rgba(16,185,129,0.4);">🌐</span>
+            
+            <div class="space-y-4 text-sm leading-relaxed mb-6 font-medium text-slate-600 dark:text-slate-300">
+                <p>Mari belajar Bahasa Inggris secara interaktif dan menyenangkan dengan bantuan AI! Berikut adalah fitur utama yang bisa Anda gunakan:</p>
+                
+                <div class="flex gap-3 items-start bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <span class="text-xl mt-0.5">✍️</span>
+                    <div>
+                        <h4 class="font-bold text-slate-800 dark:text-slate-100">Ketik & Rekam Suara</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Tulis kalimat Bahasa Inggris Anda, atau rekam secara langsung menggunakan tombol 🎤 <strong>Mic</strong>.</p>
                     </div>
                 </div>
-                <button class="ob-btn ob-btn-primary" onclick="obNextStep()">Keren! Selanjutnya →</button>
-            </div>
-            <!-- Step 4: Tap Bubble = Alternative Style -->
-            <div class="ob-step" id="ob-step-4">
-                <div class="ob-icon" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">
-                    🔄
+                
+                <div class="flex gap-3 items-start bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <span class="text-xl mt-0.5">✨</span>
+                    <div>
+                        <h4 class="font-bold text-slate-800 dark:text-slate-100">Periksa & Perbaiki Grammar</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Tekan tombol <strong>Fix ✨</strong> untuk mengoreksi tata bahasa secara otomatis dan melihat kesalahan kalimat Anda.</p>
+                    </div>
                 </div>
-                <h2 style="font-size:1.25rem; font-weight:800; margin-bottom:0.5rem;">Tap Bubble → Gaya Alternatif</h2>
-                <p style="color:#94a3b8; font-size:0.92rem; line-height:1.65;">Tekan tombol <strong style="color:#a78bfa;">🔄</strong> pada bubble manapun untuk melihat 3 variasi gaya bicara: <strong style="color:#86efac;">Natural</strong>, <strong style="color:#93c5fd;">IELTS/Academic</strong>, & <strong style="color:#f9a8d4;">Slang/Casual</strong>.</p>
-                <div style="display:flex; gap:0.5rem; margin-top:1rem; flex-wrap:wrap; justify-content:center;">
-                    <span style="background:rgba(16,185,129,0.15); color:#86efac; border:1px solid rgba(16,185,129,0.3); border-radius:999px; padding:0.3rem 0.75rem; font-size:0.78rem; font-weight:600;">🌿 Natural</span>
-                    <span style="background:rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.3); border-radius:999px; padding:0.3rem 0.75rem; font-size:0.78rem; font-weight:600;">🎓 IELTS</span>
-                    <span style="background:rgba(139,92,246,0.15); color:#f9a8d4; border:1px solid rgba(139,92,246,0.3); border-radius:999px; padding:0.3rem 0.75rem; font-size:0.78rem; font-weight:600;">😎 Slang</span>
+                
+                <div class="flex gap-3 items-start bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <span class="text-xl mt-0.5">📊</span>
+                    <div>
+                        <h4 class="font-bold text-slate-800 dark:text-slate-100">Analisis Skor Performa</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Dapatkan analisis skor mendalam untuk Grammar, Clarity, dan Confidence melalui panel yang tersedia.</p>
+                    </div>
                 </div>
-                <button class="ob-btn ob-btn-primary" onclick="obNextStep()">Siap ngobrol! 🚀</button>
             </div>
-            <!-- Step dots -->
-            <div class="ob-step-dots">
-                <div class="ob-dot active" id="ob-dot-1"></div>
-                <div class="ob-dot" id="ob-dot-2"></div>
-                <div class="ob-dot" id="ob-dot-3"></div>
-                <div class="ob-dot" id="ob-dot-4"></div>
-            </div>
+            
+            <button id="obWelcomeStartBtn" onclick="startInteractiveTutorial()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-2xl transition shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/35 flex justify-center items-center gap-2 text-sm">
+                Mulai Latihan <i class="fas fa-play text-xs"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== Tutorial Overlay & Floating Guide Card ===== -->
+    <div id="obOverlay" class="fixed inset-0 z-[9990] bg-slate-950/80 backdrop-blur-sm hidden transition-opacity duration-300 pointer-events-auto"></div>
+
+    <div id="obGuideCard" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[9992] w-full max-w-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-700 overflow-hidden">
+            <div id="obGuideCardInner" class="p-5"></div>
         </div>
     </div>
 
@@ -1070,16 +1001,19 @@
         if (btnTransFull) btnTransFull.addEventListener('click', () => executeTranslation('full'));
         
         // ===== MOBILE BUBBLE TOUCH TOGGLE =====
-        // When user taps a bubble, toggle its active state so buttons show up
         let activeBubble = null;
         document.addEventListener('click', function(e) {
             const bubble = e.target.closest('.chat-bubble');
             const altBtn = e.target.closest('.alt-btn');
-            const altPopup = document.getElementById('altPopup');
-            const transPopup = document.getElementById('translatePopup');
+            const altPopupEl = document.getElementById('altPopup');
+            const transPopupEl = document.getElementById('translatePopup');
+            const guideCard = document.getElementById('obGuideCard');
+
+            // If clicking inside guide card, don't close anything
+            if (guideCard && guideCard.contains(e.target)) return;
 
             // If clicking on a bubble (but not an action button), toggle active state
-            if (bubble && !altBtn && !altPopup?.contains(e.target) && !transPopup?.contains(e.target)) {
+            if (bubble && !altBtn && !altPopupEl?.contains(e.target) && !transPopupEl?.contains(e.target)) {
                 if (activeBubble && activeBubble !== bubble) {
                     activeBubble.classList.remove('bubble-active');
                 }
@@ -1089,65 +1023,316 @@
             }
 
             // Close popups and deactivate bubbles when clicking outside
-            if (!altBtn && !altPopup?.contains(e.target) && !transPopup?.contains(e.target)) {
-                if (activeBubble) {
+            // (but not during tutorial step 2 — tutorial manages state itself)
+            if (!altBtn && !altPopupEl?.contains(e.target) && !transPopupEl?.contains(e.target)) {
+                if (activeBubble && !(isTutorialActive && obTutorialStep >= 2)) {
                     activeBubble.classList.remove('bubble-active');
                     activeBubble = null;
                 }
             }
-
-            if (altPopup && !altPopup.contains(e.target) && !altBtn) {
-                altPopup.classList.add('hidden');
+            if (altPopupEl && !altPopupEl.contains(e.target) && !altBtn) {
+                altPopupEl.classList.add('hidden');
             }
-            if (transPopup && !transPopup.contains(e.target) && !altBtn) {
-                transPopup.classList.add('hidden');
+            if (transPopupEl && !transPopupEl.contains(e.target) && !altBtn) {
+                transPopupEl.classList.add('hidden');
             }
         });
 
-        // ===== ONBOARDING TUTORIAL =====
-        let obCurrentStep = 1;
-        const obTotalSteps = 4;
+        // ===== PREMIUM SPOTLIGHT TUTORIAL SYSTEM =====
+        let isTutorialActive = false;
+        let obTutorialStep = 0;
 
-        function obNextStep() {
-            const current = document.getElementById('ob-step-' + obCurrentStep);
-            const dot = document.getElementById('ob-dot-' + obCurrentStep);
-            if (current) current.classList.remove('active');
-            if (dot) dot.classList.remove('active');
-
-            obCurrentStep++;
-            if (obCurrentStep > obTotalSteps) {
-                obFinish();
-                return;
-            }
-
-            const next = document.getElementById('ob-step-' + obCurrentStep);
-            const nextDot = document.getElementById('ob-dot-' + obCurrentStep);
-            if (next) next.classList.add('active');
-            if (nextDot) nextDot.classList.add('active');
-        }
-
-        function obSkip() {
-            obFinish();
-        }
-
-        function obFinish() {
-            const overlay = document.getElementById('onboardingOverlay');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                overlay.style.transition = 'opacity 0.4s ease';
-                setTimeout(() => overlay.style.display = 'none', 400);
-            }
-            localStorage.setItem('speaknow_onboarding_done', '1');
-        }
-
-        // Show onboarding for first-time users
+        // -- Inject keyframe CSS once --
         (function() {
-            const done = localStorage.getItem('speaknow_onboarding_done');
-            if (!done) {
-                const overlay = document.getElementById('onboardingOverlay');
-                if (overlay) {
-                    overlay.style.display = 'flex';
+            const style = document.createElement('style');
+            style.id = 'obKeyframes';
+            style.textContent = `
+                @keyframes obPulseRing {
+                    0%,100% { outline-color: #6366f1; outline-width: 3px; }
+                    50%      { outline-color: #a5b4fc; outline-width: 6px; }
                 }
+                @keyframes obIconBounce {
+                    0%,100% { transform: translateY(0) scale(1); }
+                    50%     { transform: translateY(-4px) scale(1.15); }
+                }
+            `;
+            document.head.appendChild(style);
+        })();
+
+        // -- Helpers --
+        function obShowOverlay() {
+            const el = document.getElementById('obOverlay');
+            if (el) el.classList.remove('hidden');
+        }
+        function obHideOverlay() {
+            const el = document.getElementById('obOverlay');
+            if (el) el.classList.add('hidden');
+        }
+        function obShowGuideCard(html) {
+            const card = document.getElementById('obGuideCard');
+            const inner = document.getElementById('obGuideCardInner');
+            if (inner) inner.innerHTML = html;
+            if (card) card.classList.remove('hidden');
+        }
+        function obHideGuideCard() {
+            const card = document.getElementById('obGuideCard');
+            if (card) card.classList.add('hidden');
+        }
+        function obSpotlightEl(el) {
+            if (!el) return;
+            el.classList.add('ob-spotlight');
+            el.style.outline = '4px solid #6366f1';
+            el.style.outlineOffset = '5px';
+            el.style.borderRadius = '1rem';
+            el.style.animation = 'obPulseRing 1.4s ease-in-out infinite';
+        }
+        function obUnspotlightEl(el) {
+            if (!el) return;
+            el.classList.remove('ob-spotlight');
+            el.style.outline = '';
+            el.style.outlineOffset = '';
+            el.style.borderRadius = '';
+            el.style.animation = '';
+        }
+        function obElevateActionBtns(bubble) {
+            const actionsDiv = bubble && bubble.querySelector('.absolute.flex-row-reverse');
+            if (!actionsDiv) return;
+            actionsDiv.classList.add('ob-elevated-actions');
+            actionsDiv.querySelectorAll('.alt-btn').forEach((btn, i) => {
+                btn.style.animation = `obIconBounce 0.9s ease-in-out ${i * 0.2}s infinite`;
+            });
+        }
+        function obDeElevateActionBtns(bubble) {
+            const actionsDiv = bubble && bubble.querySelector('.absolute.flex-row-reverse');
+            if (!actionsDiv) return;
+            actionsDiv.classList.remove('ob-elevated-actions');
+            actionsDiv.querySelectorAll('.alt-btn').forEach(btn => { btn.style.animation = ''; });
+        }
+
+        // -- Guide card HTML templates --
+        function obStep1Html() {
+            return `
+            <div class="flex items-center gap-3 mb-3">
+                <span class="w-9 h-9 flex-shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-lg">👆</span>
+                <div class="flex-1">
+                    <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">Langkah 1 — Ketuk Bubble AI</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">Tutorial interaktif (1 dari 3)</p>
+                </div>
+                <span class="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-full">1/3</span>
+            </div>
+            <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                Ketuk <strong class="text-indigo-600 dark:text-indigo-400">bubble chat AI</strong> yang sedang bersinar untuk membuka fitur tersembunyi! ✨
+            </p>
+            <div class="mt-3 flex items-center gap-2 text-[11px] text-indigo-400 font-medium">
+                <i class="fas fa-arrow-up animate-bounce"></i>
+                <span>Ketuk bubble dengan cincin ungu berdenyut di atas</span>
+            </div>`;
+        }
+        function obStep2Html() {
+            return `
+            <div class="flex items-center gap-3 mb-3">
+                <span class="w-9 h-9 flex-shrink-0 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-lg">🎯</span>
+                <div class="flex-1">
+                    <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">Langkah 2 — Pilih Fitur</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">Tutorial interaktif (2 dari 3)</p>
+                </div>
+                <span class="text-[10px] font-bold text-purple-500 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-full">2/3</span>
+            </div>
+            <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                Dua ikon fitur muncul di pojok kanan atas bubble. Klik salah satunya!
+            </p>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-xs font-semibold">
+                <div class="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-xl px-3 py-2 flex items-center gap-1.5 border border-purple-100 dark:border-purple-800/30">
+                    <i class="fas fa-sync-alt"></i> Gaya Alternatif
+                </div>
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-xl px-3 py-2 flex items-center gap-1.5 border border-emerald-100 dark:border-emerald-800/30">
+                    <i class="fas fa-language"></i> Terjemahkan
+                </div>
+            </div>`;
+        }
+        function obStep3AltHtml() {
+            return `
+            <div class="flex items-center gap-3 mb-3">
+                <span class="w-9 h-9 flex-shrink-0 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-lg">🔄</span>
+                <div class="flex-1">
+                    <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">Gaya Alternatif</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">Langkah 3 dari 3 — Hampir selesai!</p>
+                </div>
+                <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full">3/3</span>
+            </div>
+            <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-2">
+                Fitur <strong class="text-purple-600 dark:text-purple-400">🔄 Gaya Alternatif</strong> menampilkan <strong>3 versi</strong> kalimat:
+            </p>
+            <div class="space-y-1.5 mb-4">
+                <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2">
+                    <span class="text-green-500 font-bold">🌿</span><span><strong>Natural</strong> — Percakapan sehari-hari</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2">
+                    <span class="text-blue-500 font-bold">🎓</span><span><strong>Academic</strong> — Formal / IELTS</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2">
+                    <span class="text-purple-500 font-bold">😎</span><span><strong>Casual</strong> — Santai / Slang</span>
+                </div>
+            </div>
+            <button onclick="obFinishTutorial(event)" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 rounded-2xl transition shadow-lg shadow-indigo-600/20 text-sm flex items-center justify-center gap-2">
+                Selesai &amp; Mulai Latihan <i class="fas fa-rocket text-xs"></i>
+            </button>`;
+        }
+        function obStep3TransHtml() {
+            return `
+            <div class="flex items-center gap-3 mb-3">
+                <span class="w-9 h-9 flex-shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-lg">🌐</span>
+                <div class="flex-1">
+                    <p class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">Terjemahkan</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">Langkah 3 dari 3 — Hampir selesai!</p>
+                </div>
+                <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full">3/3</span>
+            </div>
+            <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-2">
+                Fitur <strong class="text-emerald-600 dark:text-emerald-400">🌐 Terjemahkan</strong> punya 2 mode:
+            </p>
+            <div class="space-y-1.5 mb-4">
+                <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl px-3 py-2">
+                    <i class="fas fa-magic text-indigo-500"></i><span><strong>Smart</strong> — Terjemahkan kosakata sulit saja</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl px-3 py-2">
+                    <i class="fas fa-align-left text-emerald-500"></i><span><strong>Full</strong> — Terjemahkan seluruh kalimat</span>
+                </div>
+            </div>
+            <button onclick="obFinishTutorial(event)" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 rounded-2xl transition shadow-lg shadow-emerald-600/20 text-sm flex items-center justify-center gap-2">
+                Selesai &amp; Mulai Latihan <i class="fas fa-rocket text-xs"></i>
+            </button>`;
+        }
+
+        // -- Main tutorial functions --
+        function startTutorial() {
+            isTutorialActive = false;
+            obTutorialStep = 0;
+            ['altPopup','translatePopup','scoreCard','quickGrammarPanel'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            document.querySelectorAll('.chat-bubble').forEach(b => b.classList.remove('bubble-active'));
+            activeBubble = null;
+            const welcomeModal = document.getElementById('obWelcomeModal');
+            if (welcomeModal) welcomeModal.classList.remove('hidden');
+        }
+
+        function startInteractiveTutorial() {
+            const welcomeModal = document.getElementById('obWelcomeModal');
+            if (welcomeModal) welcomeModal.classList.add('hidden');
+
+            isTutorialActive = true;
+            obTutorialStep = 1;
+
+            const firstBubble = document.querySelector('#chatMessages > .chat-bubble');
+            if (!firstBubble) return;
+
+            // Elevate the chat box above the overlay
+            const chatBox = document.getElementById('chatBoxWrapper');
+            if (chatBox) { chatBox.style.position = 'relative'; chatBox.style.zIndex = '9991'; }
+
+            // Spotlight the first bubble
+            obSpotlightEl(firstBubble);
+
+            // Show overlay and step-1 guide card
+            obShowOverlay();
+            obShowGuideCard(obStep1Html());
+
+            // One-time click handler on first bubble
+            function onFirstBubbleClick(e) {
+                if (!isTutorialActive || obTutorialStep !== 1) return;
+                if (e.target.closest('.alt-btn')) return; // let btn handle itself
+
+                obTutorialStep = 2;
+                // Remove spotlight ring from bubble
+                obUnspotlightEl(firstBubble);
+
+                // Activate bubble so icons appear
+                firstBubble.classList.add('bubble-active');
+                activeBubble = firstBubble;
+
+                // Elevate & animate the action icons
+                obElevateActionBtns(firstBubble);
+                obShowGuideCard(obStep2Html());
+
+                // Remove this listener — step 2 handled by icon listeners
+                firstBubble.removeEventListener('click', onFirstBubbleClick, true);
+
+                // Attach icon-click listeners (capture phase to fire before alt-btn handler)
+                const altIconBtn   = firstBubble.querySelector('[title="Alternative Styles"]');
+                const transIconBtn = firstBubble.querySelector('[title="Terjemahkan"]');
+
+                function onAltClick(ev) {
+                    if (!isTutorialActive || obTutorialStep !== 2) return;
+                    obTutorialStep = 3;
+                    obDeElevateActionBtns(firstBubble);
+                    const altPopupEl = document.getElementById('altPopup');
+                    if (altPopupEl) altPopupEl.style.zIndex = '9995';
+                    obShowGuideCard(obStep3AltHtml());
+                    if (altIconBtn)   altIconBtn.removeEventListener('click', onAltClick,   true);
+                    if (transIconBtn) transIconBtn.removeEventListener('click', onTransClick, true);
+                }
+                function onTransClick(ev) {
+                    if (!isTutorialActive || obTutorialStep !== 2) return;
+                    obTutorialStep = 3;
+                    obDeElevateActionBtns(firstBubble);
+                    const transPopupEl = document.getElementById('translatePopup');
+                    if (transPopupEl) transPopupEl.style.zIndex = '9995';
+                    obShowGuideCard(obStep3TransHtml());
+                    if (altIconBtn)   altIconBtn.removeEventListener('click', onAltClick,   true);
+                    if (transIconBtn) transIconBtn.removeEventListener('click', onTransClick, true);
+                }
+
+                if (altIconBtn)   altIconBtn.addEventListener('click',   onAltClick,   true);
+                if (transIconBtn) transIconBtn.addEventListener('click', onTransClick, true);
+            }
+
+            firstBubble.addEventListener('click', onFirstBubbleClick, true);
+        }
+
+        function obFinishTutorial(event) {
+            if (event) { event.stopPropagation(); event.preventDefault(); }
+
+            isTutorialActive = false;
+            obTutorialStep = 0;
+
+            // Restore chat box z-index
+            const chatBox = document.getElementById('chatBoxWrapper');
+            if (chatBox) { chatBox.style.position = ''; chatBox.style.zIndex = ''; }
+
+            // Restore popup z-indexes & hide them
+            const altPopupEl   = document.getElementById('altPopup');
+            const transPopupEl = document.getElementById('translatePopup');
+            if (altPopupEl)   { altPopupEl.style.zIndex   = ''; altPopupEl.classList.add('hidden'); }
+            if (transPopupEl) { transPopupEl.style.zIndex = ''; transPopupEl.classList.add('hidden'); }
+
+            // Clean up spotlights on all bubbles
+            document.querySelectorAll('.chat-bubble').forEach(b => {
+                obUnspotlightEl(b);
+                obDeElevateActionBtns(b);
+                b.classList.remove('bubble-active');
+            });
+            activeBubble = null;
+
+            // Hide overlay and guide card
+            obHideOverlay();
+            obHideGuideCard();
+
+            // Permanently hide the bottom hint text
+            const hintContainer = document.getElementById('tutorialHintContainer');
+            if (hintContainer) hintContainer.classList.add('hidden');
+
+            localStorage.setItem('speaknow_onboarding_done', '1');
+            showToast('Tutorial selesai! Selamat berlatih! 🎉', 'success');
+        }
+
+        function hideAllTutorialTooltips() {} // kept for compatibility
+
+        // Auto-start for first-time users
+        (function() {
+            if (!localStorage.getItem('speaknow_onboarding_done')) {
+                setTimeout(startTutorial, 800);
             }
         })();
     </script>
